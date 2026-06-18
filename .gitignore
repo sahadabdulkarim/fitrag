@@ -1,0 +1,20 @@
+# Environment
+.venv/
+venv/
+__pycache__/
+*.pyc
+.env
+*.env
+
+# Data & Models
+data/raw/
+data/processed/*.db
+*.faiss
+*.pkl
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store

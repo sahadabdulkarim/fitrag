@@ -1,0 +1,199 @@
+Metadata-Version: 2.4
+Name: fitrag
+Version: 0.1.0
+Summary: Personalized Fitness & Nutrition Intelligence Agent powered by RAG
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: langchain>=0.2.0
+Requires-Dist: langchain-community>=0.2.0
+Requires-Dist: langchain-core>=0.2.0
+Requires-Dist: sentence-transformers>=2.7.0
+Requires-Dist: faiss-cpu>=1.7.4
+Requires-Dist: pypdf>=4.0.0
+Requires-Dist: python-dotenv>=1.0.0
+Requires-Dist: tiktoken>=0.7.0
+Requires-Dist: rich>=13.0.0
+Requires-Dist: openai>=1.30.0
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.23.0; extra == "dev"
+Requires-Dist: ruff>=0.4.0; extra == "dev"
+Provides-Extra: eval
+Requires-Dist: ragas>=0.1.0; extra == "eval"
+
+# FitRAG - Personalized Fitness & Nutrition Intelligence Agent
+
+A production-grade RAG (Retrieval-Augmented Generation) system that provides evidence-based fitness and nutrition advice grounded in a curated knowledge base of exercise science, nutrition guidelines, and training protocols.
+
+## 🎯 Project Overview
+
+FitRAG takes a user's fitness/nutrition question and:
+1. **Retrieves** relevant information from an embedded knowledge base using dense vector search (FAISS)
+2. **Grounds** answers in scientific sources (exercise science papers, nutrition guidelines)
+3. **Provides** structured, source-cited recommendations
+
+### Architecture
+
+```
+User Question
+     │
+     ▼
+┌─────────────────────┐
+│  Document Ingestion  │  ← PDF/Markdown loading + chunking
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  Embedding Pipeline  │  ← sentence-transformers → FAISS index
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  Dense Retrieval     │  ← Similarity search over embedded chunks
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  Context + Response  │  ← Top-k chunks formatted as context
+└─────────────────────┘
+```
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Python 3.10+
+- pip or uv package manager
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/fitrag.git
+cd fitrag
+
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate  # On macOS/Linux
+# .venv\Scripts\activate  # On Windows
+
+# Install dependencies
+pip install -e .
+```
+
+### Build the Knowledge Base Index
+
+```bash
+# This ingests all documents from data/raw/ and builds the FAISS index
+python -m app.pipeline
+```
+
+### Query the Knowledge Base
+
+```bash
+# Interactive mode
+python -m app.query
+
+# Single query mode
+python -m app.query "How much protein do I need to build muscle?"
+```
+
+## 📁 Project Structure
+
+```
+fitrag/
+├── app/
+│   ├── core/
+│   │   ├── config.py          # Configuration settings
+│   │   └── prompts.py         # Prompt templates
+│   ├── rag/
+│   │   ├── ingest.py          # Document loading + chunking
+│   │   ├── embedder.py        # Embedding + FAISS index management
+│   │   └── retriever.py       # Dense retrieval module
+│   ├── agents/                # (Phase 3: LangGraph agents)
+│   ├── api/                   # (Phase 4: FastAPI endpoints)
+│   ├── db/                    # (Phase 4: PostgreSQL layer)
+│   ├── eval/                  # (Phase 2: RAGAs evaluation)
+│   ├── pipeline.py            # Main index-building pipeline
+│   └── query.py               # Interactive query interface
+├── data/
+│   ├── raw/                   # Source documents (markdown, PDF)
+│   │   ├── progressive_overload.md
+│   │   ├── nutrition_fundamentals.md
+│   │   ├── common_injuries.md
+│   │   ├── training_programs.md
+│   │   ├── fat_loss_strategies.md
+│   │   ├── muscle_building.md
+│   │   └── mobility_recovery.md
+│   └── processed/             # Generated FAISS index
+├── tests/
+├── pyproject.toml
+├── .env.example
+└── README.md
+```
+
+## 📚 Knowledge Base
+
+The RAG system is grounded in 7 comprehensive documents covering:
+
+| Document | Topics |
+|----------|--------|
+| `progressive_overload.md` | Training progression, methods, rate of progress |
+| `nutrition_fundamentals.md` | Macros, calories, TDEE, meal timing, vegan nutrition |
+| `common_injuries.md` | Knee, shoulder, back, elbow injuries + prevention |
+| `training_programs.md` | PPL, Upper/Lower, Full Body, Home programs |
+| `fat_loss_strategies.md` | Deficit strategies, cardio types, plateau breaking |
+| `muscle_building.md` | Hypertrophy science, muscle-specific training |
+| `mobility_recovery.md` | Stretching, foam rolling, sleep, recovery protocols |
+
+## ⚙️ Technical Details
+
+### Phase 1 (Current): Basic Dense RAG
+- **Embedding Model:** `sentence-transformers/all-MiniLM-L6-v2` (384 dimensions)
+- **Vector Store:** FAISS (Facebook AI Similarity Search)
+- **Chunking:** Recursive character splitting (512 tokens, 50 overlap)
+- **Retrieval:** Top-k similarity search (default k=5)
+
+### Upcoming Phases
+- **Phase 2:** Hybrid retrieval (BM25 + dense + cross-encoder reranking) + RAGAs eval
+- **Phase 3:** LangGraph multi-agent workflow (intake → retrieval → recommendation)
+- **Phase 4:** FastAPI REST API + PostgreSQL audit trail
+- **Phase 5:** Docker deployment + full documentation
+
+## 🧪 Example Queries
+
+```
+❓ How much protein should I eat to build muscle?
+❓ What exercises should I avoid with a bad knee?
+❓ Give me a 4-day workout program for intermediate lifters
+❓ How do I break through a fat loss plateau?
+❓ What's the best way to warm up before squats?
+❓ How should a vegan athlete get enough protein?
+❓ What causes shoulder impingement and how do I fix it?
+❓ How many sets per week do I need for muscle growth?
+```
+
+## 📊 Evaluation (Coming in Phase 2)
+
+| Metric | Tool | What it tests |
+|--------|------|---------------|
+| Context Recall | RAGAs | Are relevant docs retrieved? |
+| Faithfulness | LLM-as-judge | Does the answer hallucinate? |
+| Answer Relevance | Embedding cosine sim | Is the answer on-topic? |
+| Safety Compliance | Custom eval | Are injuries/contraindications flagged? |
+
+## 🛠️ Development
+
+```bash
+# Install dev dependencies
+pip install -e ".[dev]"
+
+# Run tests
+pytest tests/
+
+# Lint
+ruff check app/
+```
+
+## License
+
+MIT
